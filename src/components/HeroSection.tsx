@@ -8,13 +8,17 @@ import chatInterface from "../assets/chatscreen.svg";
 import AIInput from "./AIInput";
 import AuthModal from "./AuthModal";
 import { UserType } from "../types/auth";
+import { chatApi } from "../services/api";
 
 interface HeroSectionProps {
   userType: UserType;
   onUserTypeChange: (type: UserType) => void;
 }
 
-export const HeroSection: React.FC<HeroSectionProps> = ({ userType, onUserTypeChange }) => {
+export const HeroSection: React.FC<HeroSectionProps> = ({ 
+  userType, 
+  onUserTypeChange 
+}) => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [savedQuery, setSavedQuery] = useState<string>();
   const [inputValue, setInputValue] = useState("");
@@ -75,6 +79,26 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ userType, onUserTypeCh
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       console.error('AI Query failed:', err);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleVoiceMessage = async (audioBlob: Blob, transcription: string) => {
+    try {
+      setIsProcessing(true);
+      if (!user) {
+        setSavedQuery(transcription);
+        setShowAuthModal(true);
+        return;
+      }
+
+      const response = await chatApi.sendMessage(transcription, audioBlob);
+      console.log('Voice message response:', response);
+      
+    } catch (error) {
+      console.error('Voice message error:', error);
+      setError('Failed to process voice message');
     } finally {
       setIsProcessing(false);
     }
@@ -147,9 +171,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ userType, onUserTypeCh
         savedQuery={savedQuery}
       />
 
-      {/* Gradient border effect */}
-      <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-bolt-blue via-bolt-purple to-bolt-blue-dark blur-sm opacity-50 group-hover:opacity-100 transition duration-300" />
-      
       {/* Main content */}
       <div className="relative bg-bolt-darker rounded-2xl border border-bolt-gray-800 shadow-2xl overflow-hidden p-8 mb-16 backdrop-blur-xl">
         <div className="flex flex-col md:flex-row items-center justify-between">
@@ -186,12 +207,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ userType, onUserTypeCh
               </div>
             </div>
 
-            <p className="text-xl text-bolt-gray-300 mb-8">
-              {userType === 'citizen'
-                ? "Get expert legal advice with AI trained on your country’s laws. No more generic advice – get accurate, legal assistance in seconds."
-                : "Boost your law practice with AI trained on your jurisdiction's laws. Customize with your firm's documents and knowledge base for even more precise assistance."}
-            </p>
-
             <div 
               className="text-xl font-semibold mb-6 h-20 bg-gradient-to-r from-bolt-blue to-bolt-purple bg-clip-text text-transparent cursor-pointer"
               onClick={(e) => {
@@ -216,6 +231,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ userType, onUserTypeCh
             <div className="max-w-xl">
               <AIInput 
                 onSubmit={handleAIQuery}
+                onVoiceMessage={handleVoiceMessage}
                 placeholder={`Ask any legal question as a ${userType}...`}
                 value={inputValue}
                 onChange={setInputValue}

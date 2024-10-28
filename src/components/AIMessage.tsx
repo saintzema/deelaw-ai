@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bot, User, Volume2, Loader2 } from 'lucide-react';
+import { Bot, User, Volume2, Loader2, AlertCircle } from 'lucide-react';
 import AudioPlayer from './AudioPlayer';
 
 interface AIMessageProps {
@@ -16,20 +16,32 @@ const AIMessage: React.FC<AIMessageProps> = ({
   onRequestVoice
 }) => {
   const [isGeneratingVoice, setIsGeneratingVoice] = useState(false);
-  const [messageAudioUrl, setMessageAudioUrl] = useState(audioUrl);
+  const [messageAudioUrl, setMessageAudioUrl] = useState<string | undefined>(audioUrl);
+  const [error, setError] = useState<string | null>(null);
 
   const handleVoiceRequest = async () => {
     if (!onRequestVoice) return;
 
     setIsGeneratingVoice(true);
+    setError(null);
+    
     try {
       const url = await onRequestVoice();
+      if (!url) {
+        throw new Error('Failed to generate audio');
+      }
       setMessageAudioUrl(url);
     } catch (error) {
       console.error('Failed to generate voice:', error);
+      setError(error instanceof Error ? error.message : 'Failed to generate voice');
     } finally {
       setIsGeneratingVoice(false);
     }
+  };
+
+  const handleReplay = async () => {
+    setMessageAudioUrl(undefined); // Clear existing audio
+    await handleVoiceRequest(); // Generate new audio
   };
 
   return (
@@ -53,23 +65,38 @@ const AIMessage: React.FC<AIMessageProps> = ({
             <p className="text-bolt-gray-300 whitespace-pre-wrap">{content}</p>
 
             {!isUser && !messageAudioUrl && onRequestVoice && (
-              <button
-                onClick={handleVoiceRequest}
-                disabled={isGeneratingVoice}
-                className="mt-3 flex items-center gap-2 text-sm text-bolt-gray-400 hover:text-white transition-colors disabled:opacity-50"
-              >
-                {isGeneratingVoice ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Generating voice...
-                  </>
+              <div className="mt-3">
+                {error ? (
+                  <div className="flex items-center gap-2 text-sm text-red-500">
+                    <AlertCircle className="w-4 h-4" />
+                    {error}
+                    <button
+                      onClick={handleVoiceRequest}
+                      className="ml-2 text-bolt-blue hover:text-bolt-purple"
+                    >
+                      Retry
+                    </button>
+                  </div>
                 ) : (
-                  <>
-                    <Volume2 className="w-4 h-4" />
-                    Listen to response
-                  </>
+                  <button
+                    onClick={handleVoiceRequest}
+                    disabled={isGeneratingVoice}
+                    className="flex items-center gap-2 text-sm text-bolt-gray-400 hover:text-white transition-colors disabled:opacity-50"
+                  >
+                    {isGeneratingVoice ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Generating voice...
+                      </>
+                    ) : (
+                      <>
+                        <Volume2 className="w-4 h-4" />
+                        Listen to response
+                      </>
+                    )}
+                  </button>
                 )}
-              </button>
+              </div>
             )}
           </div>
         </div>
@@ -77,7 +104,7 @@ const AIMessage: React.FC<AIMessageProps> = ({
         {messageAudioUrl && !isUser && (
           <AudioPlayer 
             audioUrl={messageAudioUrl}
-            onReplay={onRequestVoice}
+            onReplay={handleReplay}
           />
         )}
       </div>

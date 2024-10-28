@@ -1,9 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Bot, Sparkles } from 'lucide-react';
-import AIInput from './AIInput';
-import AIMessage from './AIMessage';
-import { useAuth } from '../contexts/AuthContext';
-import { mockApi } from '../services/mockApi';
+import React, { useState, useRef, useEffect } from "react";
+import { Bot, Sparkles } from "lucide-react";
+import AIInput from "./AIInput";
+import AIMessage from "./AIMessage";
+import { useAuth } from "../contexts/AuthContext";
+import { chatApi } from "../services/api";
 
 interface Message {
   id: string;
@@ -17,15 +17,15 @@ interface ChatContainerProps {
   selectedVoice?: {
     id: string;
     name: string;
-    gender: 'male' | 'female';
+    gender: "male" | "female";
     preview?: string;
   };
   initialQuery?: string;
 }
 
-const ChatContainer: React.FC<ChatContainerProps> = ({ 
+const ChatContainer: React.FC<ChatContainerProps> = ({
   selectedVoice,
-  initialQuery 
+  initialQuery,
 }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -45,59 +45,105 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
   }, [initialQuery, user]);
 
   const scrollToBottom = () => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   const handleSubmit = async (query: string, files?: File[]) => {
     if (!user) return;
 
     setIsProcessing(true);
-    
+
     try {
       // Add user message
       const userMessage: Message = {
         id: crypto.randomUUID(),
         content: query,
         isUser: true,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
-      setMessages(prev => [...prev, userMessage]);
+      setMessages((prev) => [...prev, userMessage]);
 
-      // Mock AI response
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const aiResponse = `This is a mock response to: "${query}"`;
+      // Get AI response
+      const response = await chatApi.sendMessage(query);
 
       // Add AI message
       const aiMessage: Message = {
         id: crypto.randomUUID(),
-        content: aiResponse,
+        content: response.message,
         isUser: false,
-        timestamp: new Date()
+        timestamp: new Date(),
+        audioUrl: response.audioUrl,
       };
-      setMessages(prev => [...prev, aiMessage]);
+      setMessages((prev) => [...prev, aiMessage]);
 
-      // Update tokens
-      const wordsUsed = query.split(/\s+/).length;
-      updateTokens({
-        words: tokens.words - wordsUsed
-      });
-
+      // Update tokens if the API returned tokens used
+      if (response.tokensUsed) {
+        updateTokens({
+          words: tokens.words - response.tokensUsed,
+        });
+      }
     } catch (error) {
-      console.error('Chat error:', error);
-      // Add error message
-      setMessages(prev => [...prev, {
-        id: crypto.randomUUID(),
-        content: "I apologize, but I encountered an error processing your request. Please try again.",
-        isUser: false,
-        timestamp: new Date()
-      }]);
+      console.error("Chat error:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          content:
+            "I apologize, but I encountered an error processing your request. Please try again.",
+          isUser: false,
+          timestamp: new Date(),
+        },
+      ]);
     } finally {
       setIsProcessing(false);
     }
   };
 
   const handleVoiceMessage = async (audioBlob: Blob, transcription: string) => {
-    await handleSubmit(transcription);
+    try {
+      setIsProcessing(true);
+
+      // Add user message with transcription
+      const userMessage: Message = {
+        id: crypto.randomUUID(),
+        content: transcription,
+        isUser: true,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, userMessage]);
+
+      // Send message with audio
+      const response = await chatApi.sendMessage(transcription, audioBlob);
+
+      // Add AI message
+      const aiMessage: Message = {
+        id: crypto.randomUUID(),
+        content: response.message,
+        isUser: false,
+        timestamp: new Date(),
+        audioUrl: response.audioUrl,
+      };
+      setMessages((prev) => [...prev, aiMessage]);
+
+      if (response.tokensUsed) {
+        updateTokens({
+          words: tokens.words - response.tokensUsed,
+        });
+      }
+    } catch (error) {
+      console.error("Voice message error:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          content: "Failed to process voice message. Please try again.",
+          isUser: false,
+          timestamp: new Date(),
+        },
+      ]);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -113,7 +159,8 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
               Welcome to DeeLaw AI
             </h2>
             <p className="text-bolt-gray-300 max-w-md">
-              I'm your AI legal assistant. Ask me anything about law, or upload documents for analysis.
+              I'm your AI legal assistant. Ask me anything about law, or upload
+              documents for analysis.
               {selectedVoice && " I can also speak my responses!"}
             </p>
             <div className="flex items-center justify-center gap-2 text-sm text-bolt-gray-400">
@@ -124,34 +171,43 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
         </div>
       )}
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
-        {messages.map(message => (
-          <AIMessage
-            key={message.id}
-            content={message.content}
-            isUser={message.isUser}
-            audioUrl={message.audioUrl}
-            onRequestVoice={
-              !message.isUser && selectedVoice 
-                ? async () => {
-                    // Mock voice generation
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    return '/mock-audio-url.mp3';
-                  }
-                : undefined
+{/* Messages */}
+<div className="flex-1 overflow-y-auto p-6 space-y-6">
+  {messages.map((message) => (
+    <AIMessage
+      key={message.id}
+      content={message.content}
+      isUser={message.isUser}
+      audioUrl={message.audioUrl}
+      onRequestVoice={
+        !message.isUser && selectedVoice
+          ? async () => {
+              try {
+                const response = await chatApi.generateAudioResponse(message.content);
+                if (!response.audioUrl) {
+                  throw new Error('No audio URL received');
+                }
+                return response.audioUrl;
+              } catch (error) {
+                console.error('Failed to generate audio:', error);
+                throw error;
+              }
             }
-          />
-        ))}
-        <div ref={chatEndRef} />
-      </div>
+          : undefined
+      }
+    />
+  ))}
+  <div ref={chatEndRef} />
+</div>
 
       {/* Input Area */}
       <div className="p-4 border-t border-bolt-gray-800">
         <AIInput
           onSubmit={handleSubmit}
           onVoiceMessage={handleVoiceMessage}
-          placeholder={isProcessing ? "Processing..." : "Ask me anything about law..."}
+          placeholder={
+            isProcessing ? "Processing..." : "Ask me anything about law..."
+          }
           disabled={isProcessing}
         />
       </div>

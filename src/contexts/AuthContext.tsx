@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { SignupData, User, Tokens } from '../types/auth';
-import { mockApi } from '../services/mockApi';
+import { authApi } from '../services/api';
 
 interface AuthContextType {
   user: User | null;
@@ -42,7 +42,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const storedUser = localStorage.getItem('user');
       if (token && storedUser) {
         try {
-          const userData = await mockApi.validateToken(token);
+          const userData = await authApi.validateToken();
           setUser(userData);
           setTokens(userData.tokens);
           setIsEmailVerified(userData.isEmailVerified);
@@ -62,7 +62,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      const { user: userData, token } = await mockApi.login(email, password);
+      const { user: userData, token } = await authApi.login(email, password);
       localStorage.setItem('auth_token', token);
       localStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('tokens', JSON.stringify(userData.tokens));
@@ -77,7 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signup = async (data: SignupData) => {
     try {
-      const { user: userData, token } = await mockApi.signup(data);
+      const { user: userData, token } = await authApi.signup(data);
       localStorage.setItem('auth_token', token);
       localStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('tokens', JSON.stringify(userData.tokens));
@@ -92,9 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const resendVerificationEmail = async () => {
     try {
-      const token = localStorage.getItem('auth_token');
-      if (!token) throw new Error('Not authenticated');
-      await mockApi.resendVerification(token);
+      await authApi.resendVerification();
     } catch (error) {
       console.error('Failed to resend verification:', error);
       throw error;
@@ -109,18 +107,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
-  const logout = () => {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('tokens');
-    setUser(null);
-    setTokens({
-      words: 0,
-      images: 0,
-      minutes: 0,
-      characters: 0
-    });
-    setIsEmailVerified(false);
+  const logout = async () => {
+    try {
+      await authApi.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('tokens');
+      setUser(null);
+      setTokens({
+        words: 0,
+        images: 0,
+        minutes: 0,
+        characters: 0
+      });
+      setIsEmailVerified(false);
+    }
   };
 
   return (
