@@ -1,41 +1,37 @@
 import React from 'react';
-import { Sparkles, Zap, FileText, Globe } from 'lucide-react';
+import { Sparkles, Zap, FileText, Globe, Building2 } from 'lucide-react';
 
 const DetailedFeatures: React.FC = () => {
   const features = [
     {
-      icon: <Zap className="w-6 h-6" />,
-      title: "Ask AI Lawyer",
-      description: "Legal research made simple. Chat with your AI assistant for instant insights and answers to complex legal questions in real-time.",
-      image: "https://source.unsplash.com/random/800x600?chat,interface"
+      icon: <Globe className="w-6 h-6" />,
+      title: "Country-Specific Legal AI",
+      description: "Unlike generic AI, DeeLaw is trained on your country's specific laws, regulations, and legal precedents for accurate, relevant advice.",
+      image: "https://source.unsplash.com/random/800x600?globe,world"
+    },
+    {
+      icon: <Building2 className="w-6 h-6" />,
+      title: "Custom-Trained for Your Firm",
+      description: "Train DeeLaw on your firm's documents, past cases, and unique processes for personalized, firm-specific assistance.",
+      image: "https://source.unsplash.com/random/800x600?office,building"
     },
     {
       icon: <FileText className="w-6 h-6" />,
-      title: "AI Document Handling",
-      description: "Instantly analyze contracts, convert legal documents, and get summaries of complex legal texts with advanced AI processing.",
+      title: "Smart Document Analysis",
+      description: "Instantly analyze contracts and legal documents with AI that understands your jurisdiction's legal requirements.",
       image: "https://source.unsplash.com/random/800x600?document,scanning"
     },
     {
-      icon: <Globe className="w-6 h-6" />,
-      title: "Internet-Powered Research",
-      description: "Complete hours of legal research in minutes with AI-powered search and comprehensive analysis of legal databases.",
-      image: "https://source.unsplash.com/random/800x600?research,internet"
-    },
-    {
       icon: <Zap className="w-6 h-6" />,
-      title: "Multi-Platform Access",
-      description: "Access powerful legal AI tools anywhere. Available seamlessly across web and mobile devices.",
-      image: "https://source.unsplash.com/random/800x600?mobile,devices"
+      title: "Real-Time Legal Research",
+      description: "Access up-to-date legal information specific to your jurisdiction, with instant citations and references.",
+      image: "https://source.unsplash.com/random/800x600?research,library"
     }
   ];
 
   return (
-    <section className="relative py-24 overflow-hidden">
-      {/* Gradient background effects */}
-      <div className="absolute inset-0 bg-bolt-darker" />
-      <div className="absolute inset-0 bg-gradient-radial from-bolt-blue/10 via-transparent to-transparent" />
-      <div className="absolute right-0 top-1/4 w-96 h-96 bg-bolt-purple/10 rounded-full blur-3xl" />
-      <div className="absolute left-0 bottom-1/4 w-96 h-96 bg-bolt-blue/10 rounded-full blur-3xl" />
+    <section className="relative py-5 overflow-hidden">
+      {/* Previous background effects remain the same... */}
 
       <div className="container relative mx-auto px-4">
         <div className="flex items-center justify-center gap-2 mb-4">
@@ -46,12 +42,12 @@ const DetailedFeatures: React.FC = () => {
         </div>
         
         <h2 className="text-4xl font-bold text-center text-white mb-4">
-          Advanced Legal AI Features
+          Jurisdiction-Specific Legal AI
         </h2>
         
         <p className="text-xl text-bolt-gray-300 text-center mb-16 max-w-3xl mx-auto">
-          Discover powerful features that transform your legal work. From instant document analysis 
-          to AI-powered research, we handle the complexity.
+          Unlike general AI, DeeLaw is trained specifically on your country's legal system, 
+          providing accurate, relevant advice for your jurisdiction.
         </p>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

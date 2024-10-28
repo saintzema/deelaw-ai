@@ -7,7 +7,7 @@ const userTypes = [
     title: "AI for",
     highlight: "Legal Consumers",
     highlightColor: "from-bolt-purple to-bolt-blue",
-    description: "From deciphering complex terms to understanding rights, we've got you covered.",
+    description: "Get instant legal guidance based on your country's specific laws. No more generic advice - receive accurate, jurisdiction-specific assistance.",
     image: "https://source.unsplash.com/random/600x400?legal,consumer"
   },
   {
@@ -15,7 +15,7 @@ const userTypes = [
     title: "AI for",
     highlight: "Lawyers",
     highlightColor: "from-bolt-blue to-bolt-purple",
-    description: "Let us handle the research and paperwork while you elevate client relationships.",
+    description: "Access an AI trained on your jurisdiction's laws and regulations. Customize with your firm's documents for personalized assistance.",
     image: "https://source.unsplash.com/random/600x400?lawyer,work"
   },
   {
@@ -23,7 +23,7 @@ const userTypes = [
     title: "AI for",
     highlight: "Law Firms",
     highlightColor: "from-bolt-blue to-bolt-purple",
-    description: "Streamlining processes and boosting efficiency, we're revolutionising the way law firms operate",
+    description: "Train DeeLaw on your firm's documents and precedents. Get an AI that understands your jurisdiction and practice areas.",
     image: "https://source.unsplash.com/random/600x400?office,legal"
   },
   {
@@ -31,14 +31,14 @@ const userTypes = [
     title: "AI for",
     highlight: "Law Students",
     highlightColor: "from-bolt-purple to-bolt-blue",
-    description: "We've made a perfect learning tool. It helps students prepare for a career in law.",
+    description: "Study with an AI that knows your country's legal system. Perfect for exam prep and understanding local case law.",
     image: "https://source.unsplash.com/random/600x400?student,study"
   }
 ];
 
 const UsersSection: React.FC = () => {
   return (
-    <section className="relative py-24 overflow-hidden">
+    <section className="relative py-1 overflow-hidden">
       {/* Gradient background effects */}
       <div className="absolute inset-0 bg-bolt-darker" />
       <div className="absolute inset-0 bg-gradient-radial from-bolt-blue/10 via-transparent to-transparent" />
@@ -54,12 +54,12 @@ const UsersSection: React.FC = () => {
         </div>
 
         <h2 className="text-4xl font-bold text-center text-white mb-4">
-          Who is AI Lawyer for?
+          Who is DeeLaw AI for?
         </h2>
 
         <p className="text-xl text-bolt-gray-300 text-center mb-16 max-w-3xl mx-auto">
-          Our goal is simple: to make justice widely available. Whether you're a consumer, practicing
-          law, or studying it, we're here for you.
+          Unlike generic AI, DeeLaw is trained on your country's specific laws and can be customized 
+          for your organization's unique needs. Get relevant, jurisdiction-specific legal assistance.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Coins, ArrowRight } from 'lucide-react';
+import { Coins, ArrowRight, Mic } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { usePricing } from '../contexts/PricingContext';
@@ -11,6 +11,7 @@ interface TokenPurchaseCardProps {
   currency: 'USD' | 'NGN';
   highlighted?: boolean;
   description?: string;
+  voiceMinutes?: number;
 }
 
 const TokenPurchaseCard: React.FC<TokenPurchaseCardProps> = ({
@@ -19,6 +20,7 @@ const TokenPurchaseCard: React.FC<TokenPurchaseCardProps> = ({
   currency,
   highlighted = false,
   description,
+  voiceMinutes,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
@@ -48,6 +50,7 @@ const TokenPurchaseCard: React.FC<TokenPurchaseCardProps> = ({
         metadata: {
           type: 'token_purchase',
           tokenAmount,
+          voiceMinutes,
           userId: user.id,
         },
         publicKey: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
@@ -98,6 +101,13 @@ const TokenPurchaseCard: React.FC<TokenPurchaseCardProps> = ({
             </p>
           </div>
         </div>
+
+        {voiceMinutes && (
+          <div className="flex items-center gap-2 mb-4 text-sm text-bolt-gray-300">
+            <Mic className="w-4 h-4 text-bolt-blue" />
+            <span>{voiceMinutes} minutes voice processing</span>
+          </div>
+        )}
 
         <div className="mb-6">
           <span className="text-3xl font-bold bg-gradient-to-r from-bolt-blue to-bolt-purple bg-clip-text text-transparent">

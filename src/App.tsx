@@ -1,24 +1,26 @@
 import React, { useState, useEffect } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { Scale, Menu, X, LogIn, LogOut } from 'lucide-react';
 import HeroSection from './components/HeroSection';
 import FeatureSection from './components/FeatureSection';
 import DetailedFeatures from './components/DetailedFeatures';
 import TestimonialSection from './components/TestimonialSection';
 import CTASection from './components/CTASection';
-import PricingCard from './components/PricingCard';
+import PricingSection from './components/PricingSection';
 import AdvantagesSection from './components/AdvantagesSection';
 import UsersSection from './components/UsersSection';
 import HowItWorks from './components/HowItWorks';
-import TokenPurchaseCard from './components/TokenPurchaseCard';
-
+import DashboardRoutes from './components/dashboard/DashboardRoutes';
+import { useAuth } from './contexts/AuthContext';
 
 const App: React.FC = () => {
   const [userType, setUserType] = useState<'citizen' | 'lawyer'>('citizen');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currency, setCurrency] = useState<'USD' | 'NGN'>('USD');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+  const { user, logout } = useAuth();
+  const location = useLocation();
 
+  const isDashboard = location.pathname.startsWith('/dashboard');
 
   useEffect(() => {
     const checkLocation = async () => {
@@ -36,113 +38,13 @@ const App: React.FC = () => {
     checkLocation();
   }, []);
 
-  const handleAuthClick = () => {
-    setIsLoggedIn(!isLoggedIn);
-  };
-
-  const pricingPlans = [
-    {
-      planId: 'free-plan',
-      title: "Free Plan",
-      subtitle: "Basic Legal Help",
-      price: currency === 'NGN' ? 0 : 0,
-      tokenAmount: 1000,
-      features: [
-        "Basic AI legal assistant",
-        "1,000 words per month",
-        "Simple document help",
-        "Basic templates",
-        "Pay-as-you-go option"
-      ]
-    },
-    {
-      planId: 'basic-plan',
-      title: "Basic Plan",
-      subtitle: "Essential Legal Support",
-      price: currency === 'NGN' ? 4500 : 10,
-      tokenAmount: 25000,
-      features: [
-        "Smart AI legal assistant",
-        "25,000 words per month",
-        "Document review",
-        "Standard templates",
-        "Email support"
-      ]
-    },
-    {
-      planId: 'pro-plan',
-      title: "Pro Plan",
-      subtitle: "Complete Legal Solution",
-      price: currency === 'NGN' ? 13500 : 30,
-      tokenAmount: 100000,
-      features: [
-        "Advanced AI assistant",
-        "100,000 words per month",
-        "Full automation",
-        "Premium templates",
-        "Priority support"
-      ],
-      popularTag: true
-    },
-    {
-      planId: 'max-plan',
-      title: "Max Plan",
-      subtitle: "Ultimate Legal Access",
-      price: currency === 'NGN' ? 22500 : 50,
-      tokenAmount: 1000000,
-      features: [
-        "Maximum AI help",
-        "1M words per month",
-        "Full automation",
-        "Custom templates",
-        "24/7 support"
-      ]
-    }
-  ];
-
-  const tokenPackages = [
-    {
-      tokenAmount: 5000,
-      price: currency === 'NGN' ? 2250 : 5,
-      description: "Starter Pack",
-    },
-    {
-      tokenAmount: 10000,
-      price: currency === 'NGN' ? 4050 : 9,
-      description: "Popular Pack",
-      highlighted: true,
-    },
-    {
-      tokenAmount: 50000,
-      price: currency === 'NGN' ? 18000 : 40,
-      description: "Pro Pack",
-    },
-    {
-      tokenAmount: 100000,
-      price: currency === 'NGN' ? 31500 : 70,
-      description: "Max Pack",
-    },
-    {
-      planId: 'annual-plan',
-      title: "Annual Plan",
-      subtitle: "Yearly Legal Access",
-      price: currency === 'NGN' ? 50000 : 110,
-      period: 'year',
-      tokenAmount: 1500000,
-      features: [
-        "All Max Plan features",
-        "1.5M words per year",
-        "Priority support",
-        "Custom templates",
-        "2 months free"
-      ]
-    }
-  ];
-
+  if (isDashboard) {
+    return <DashboardRoutes />;
+  }
 
   return (
     <div className="min-h-screen bg-bolt-dark text-bolt-gray-50 relative overflow-hidden">
-      {/* Futuristic tint effects */}
+      {/* Background effects */}
       <div className="fixed top-0 left-0 right-0 h-[150px] bg-gradient-to-b from-bolt-blue/10 via-bolt-purple/5 to-transparent pointer-events-none z-10" />
       <div className="fixed top-0 right-0 w-[500px] h-[500px] bg-bolt-blue/10 rounded-full blur-3xl pointer-events-none" />
       <div className="fixed top-[20%] left-0 w-[400px] h-[400px] bg-bolt-purple/10 rounded-full blur-3xl pointer-events-none" />
@@ -157,9 +59,11 @@ const App: React.FC = () => {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center relative">
           <div className="flex items-center">
             <Scale className="text-bolt-blue w-8 h-8 mr-2" />
+            <a href='/'> 
             <span className="text-2xl font-bold text-white">
               DeeLaw <span className="text-bolt-blue bg-clip-text text-transparent bg-gradient-to-r from-bolt-blue to-bolt-purple">AI</span>
             </span>
+            </a>
           </div>
           
           <button 
@@ -193,87 +97,45 @@ const App: React.FC = () => {
             </div>
           )}
 
-          <button 
-            onClick={handleAuthClick}
-            className="bg-gradient-to-r from-bolt-blue to-bolt-purple text-white px-6 py-2 rounded-full font-semibold hover:opacity-90 transition-all duration-300 shadow-lg hover:shadow-bolt-blue/20 hover:scale-105 flex items-center gap-2"
-          >
-            {isLoggedIn ? (
-              <>
-                Dashboard
-                <LogOut className="w-4 h-4" />
-              </>
-            ) : (
-              <>
-                Try for Free
-                <LogIn className="w-4 h-4" />
-              </>
-            )}
-          </button>
+          {user ? (
+            <button 
+              onClick={() => window.location.href = '/dashboard'}
+              className="bg-gradient-to-r from-bolt-blue to-bolt-purple text-white px-6 py-2 rounded-full font-semibold hover:opacity-90 transition-all duration-300 shadow-lg hover:shadow-bolt-blue/20 hover:scale-105 flex items-center gap-2"
+            >
+              Dashboard
+              <LogIn className="w-4 h-4" />
+            </button>
+          ) : (
+            <button 
+              onClick={() => window.location.href = '/login'}
+              className="bg-gradient-to-r from-bolt-blue to-bolt-purple text-white px-6 py-2 rounded-full font-semibold hover:opacity-90 transition-all duration-300 shadow-lg hover:shadow-bolt-blue/20 hover:scale-105 flex items-center gap-2"
+            >
+              Try for Free
+              <LogIn className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </header>
 
       <main className="relative z-30">
-        <div className="container mx-auto px-4 py-12">
-          <HeroSection userType={userType} onUserTypeChange={setUserType} />
-        </div>
-
-        <FeatureSection />
-
-        <div className="container mx-auto px-4">
-          <section id="pricing" className="py-16">
-            <h2 className="text-3xl font-bold text-center text-white mb-8">Pricing Plans</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {pricingPlans.map((plan, index) => (
-                 <PricingCard
-                  key={index}
-                  planId={plan.planId}
-                  title={plan.title}
-                  subtitle={plan.subtitle}
-                  price={plan.price}
-                  currency={currency}
-                  period="month"
-                  features={plan.features}
-                  tokenAmount={plan.tokenAmount}
-                  highlighted={index === 2}
-                  popularTag={plan.popularTag}
-                  isSelected={selectedPlanId === plan.planId}
-                  onSelect={() => setSelectedPlanId(plan.planId)}
-                />
-              ))}
-            </div>
-
-            <div className="mt-20">
-              <h2 className="text-3xl font-bold text-center text-white mb-4">Custom Token Packages</h2>
-              <p className="text-center text-bolt-gray-300 mb-8">
-                Need a specific amount of tokens? Choose from our flexible token packages
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                {tokenPackages.map((pkg, index) => (
-                  <TokenPurchaseCard
-                    key={index}
-                    tokenAmount={pkg.tokenAmount}
-                    price={pkg.price}
-                    currency={currency}
-                    highlighted={pkg.highlighted}
-                    description={pkg.description}
-                  />
-                ))}
+        <Routes>
+          <Route path="/" element={
+            <>
+              <div className="container mx-auto px-4 py-12">
+                <HeroSection userType={userType} onUserTypeChange={setUserType} />
               </div>
-            </div>
-
-          </section>
-        </div>
-        <AdvantagesSection />
-        <UsersSection />
-
-        
-        <div>
-        </div>
-
-        <HowItWorks />
-        <DetailedFeatures />
-        <TestimonialSection />
-        <CTASection />
+              <FeatureSection />
+              <PricingSection currency={currency} />
+              <AdvantagesSection />
+              <UsersSection />
+              <HowItWorks />
+              <DetailedFeatures />
+              <TestimonialSection />
+              <CTASection />
+            </>
+          } />
+          <Route path="/dashboard/*" element={<DashboardRoutes />} />
+        </Routes>
       </main>
 
       <footer className="relative z-30 bg-bolt-darker border-t border-bolt-gray-800 py-8">
@@ -293,7 +155,7 @@ const App: React.FC = () => {
             </div>
           </div>
           <div className="mt-8 text-center text-sm text-bolt-gray-400">
-            &copy; 2024 DeeLaw. All rights reserved.
+            &copy; 2024 DeeLawAI (A Zema Tech Company). All rights reserved.
           </div>
         </div>
       </footer>

@@ -6,6 +6,7 @@ export interface PaystackOptions {
       type?: 'subscription' | 'token_purchase';
       planId?: string;
       tokenAmount: number;
+      voiceMinutes?: number;
       userId: string;
     };
     publicKey: string;

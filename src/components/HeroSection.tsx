@@ -188,8 +188,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ userType, onUserTypeCh
 
             <p className="text-xl text-bolt-gray-300 mb-8">
               {userType === 'citizen'
-                ? "Say goodbye to expensive legal consultation, long waits for appointments, and confusing legal texts."
-                : "Say goodbye to routine tasks. DeeLaw automates your legal research and paperwork, granting you more free time."}
+                ? "Get expert legal advice with AI trained on your country’s laws. No more generic advice – get accurate, legal assistance in seconds."
+                : "Boost your law practice with AI trained on your jurisdiction's laws. Customize with your firm's documents and knowledge base for even more precise assistance."}
             </p>
 
             <div 
