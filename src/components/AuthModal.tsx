@@ -31,7 +31,10 @@ const AuthModal: React.FC<AuthModalProps> = ({
   const { login, signup } = useAuth();
   const navigate = useNavigate();
 
-  const googleLogin = useGoogleLogin({
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const showGoogleButton = Boolean(googleClientId);
+
+  const googleLogin = showGoogleButton ? useGoogleLogin({
     onSuccess: async (response) => {
       try {
         setIsLoading(true);
@@ -59,7 +62,10 @@ const AuthModal: React.FC<AuthModalProps> = ({
         setIsLoading(false);
       }
     },
-  });
+    onError: () => {
+      setError('Google authentication failed');
+    }
+  }) : null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,7 +126,8 @@ const AuthModal: React.FC<AuthModalProps> = ({
             <p className="text-bolt-gray-100">{savedQuery}</p>
           </div>
         )}
-
+        {showGoogleButton && (
+          <>
         <button
           onClick={() => googleLogin()}
           disabled={isLoading}
@@ -137,7 +144,9 @@ const AuthModal: React.FC<AuthModalProps> = ({
           <div className="relative flex justify-center text-sm">
             <span className="px-2 bg-bolt-darker text-bolt-gray-400">Or continue with email</span>
           </div>
-        </div>
+        </div> 
+        </>
+      )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {mode === 'signup' && (

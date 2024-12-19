@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { Scale, Menu, X, LogIn, LogOut } from 'lucide-react';
+import { Scale, Menu, X, LogIn } from 'lucide-react';
 import HeroSection from './components/HeroSection';
 import FeatureSection from './components/FeatureSection';
 import DetailedFeatures from './components/DetailedFeatures';
@@ -17,7 +17,7 @@ const App: React.FC = () => {
   const [userType, setUserType] = useState<'citizen' | 'lawyer'>('citizen');
   const [currency, setCurrency] = useState<'USD' | 'NGN'>('USD');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const location = useLocation();
 
   const isDashboard = location.pathname.startsWith('/dashboard');
@@ -60,9 +60,9 @@ const App: React.FC = () => {
           <div className="flex items-center">
             <Scale className="text-bolt-blue w-8 h-8 mr-2" />
             <a href='/'> 
-            <span className="text-2xl font-bold text-white">
-              DeeLaw <span className="text-bolt-blue bg-clip-text text-transparent bg-gradient-to-r from-bolt-blue to-bolt-purple">AI</span>
-            </span>
+              <span className="text-2xl font-bold text-white">
+                DeeLaw <span className="text-bolt-blue bg-clip-text text-transparent bg-gradient-to-r from-bolt-blue to-bolt-purple">AI</span>
+              </span>
             </a>
           </div>
           
