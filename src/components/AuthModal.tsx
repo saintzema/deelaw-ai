@@ -128,25 +128,25 @@ const AuthModal: React.FC<AuthModalProps> = ({
         )}
         {showGoogleButton && (
           <>
-        <button
-          onClick={() => googleLogin()}
-          disabled={isLoading}
-          className="w-full bg-white text-gray-800 py-3 rounded-lg font-semibold mb-6 flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors"
-        >
-          <img src="/google.svg" alt="Google" className="w-5 h-5" />
-          Continue with Google
-        </button>
+            <button
+              onClick={() => googleLogin()}
+              disabled={isLoading}
+              className="w-full bg-white text-gray-800 py-3 rounded-lg font-semibold mb-6 flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors"
+            >
+              <img src="/google.svg" alt="Google" className="w-5 h-5" />
+              Continue with Google
+            </button>
 
-        <div className="relative mb-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-bolt-gray-700" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-bolt-darker text-bolt-gray-400">Or continue with email</span>
-          </div>
-        </div> 
-        </>
-      )}
+            <div className="relative mb-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-bolt-gray-700" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="bg-bolt-darker px-2 text-bolt-gray-400">or</span>
+              </div>
+            </div>
+          </>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {mode === 'signup' && (

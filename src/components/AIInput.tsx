@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import { SendHorizontal, Paperclip, X, FileText, Image, Loader2, Mic } from 'lucide-react';
 import VoiceRecorder from './VoiceRecorder';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
 
 interface AIInputProps {
   onSubmit: (query: string, files?: File[]) => void;
@@ -11,6 +10,9 @@ interface AIInputProps {
   value?: string;
   onChange?: (value: string) => void;
   disabled?: boolean;
+  showAuthModal: (show: boolean) => void;
+  setSavedQuery: (query: string | undefined) => void;
+  isProcessing?: boolean;
 }
 
 const AIInput: React.FC<AIInputProps> = ({ 
@@ -19,7 +21,10 @@ const AIInput: React.FC<AIInputProps> = ({
   placeholder = "Ask DeeLaw anything...",
   value,
   onChange,
-  disabled = false
+  disabled = false,
+  showAuthModal,
+  setSavedQuery,
+  isProcessing = false
 }) => {
   const [query, setQuery] = useState('');
   const [files, setFiles] = useState<File[]>([]);
@@ -27,7 +32,6 @@ const AIInput: React.FC<AIInputProps> = ({
   const [isRecording, setIsRecording] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
-  const navigate = useNavigate();
 
   // Use controlled input if value and onChange are provided
   const isControlled = value !== undefined && onChange !== undefined;
@@ -36,7 +40,8 @@ const AIInput: React.FC<AIInputProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
-      navigate('/login', { state: { savedQuery: inputValue } });
+      setSavedQuery(inputValue);
+      showAuthModal(true);
       return;
     }
 
@@ -84,7 +89,8 @@ const AIInput: React.FC<AIInputProps> = ({
   const handleRecordingComplete = async (audioBlob: Blob, transcription: string) => {
     setIsRecording(false);
     if (!user) {
-      navigate('/login', { state: { savedQuery: transcription } });
+      setSavedQuery(transcription);
+      showAuthModal(true);
       return;
     }
     onVoiceMessage(audioBlob, transcription);
@@ -135,7 +141,7 @@ const AIInput: React.FC<AIInputProps> = ({
                 value={inputValue}
                 onChange={handleInputChange}
                 placeholder={placeholder}
-                disabled={disabled}
+                disabled={disabled || isProcessing}
                 className="flex-1 bg-transparent text-white placeholder-bolt-gray-400 focus:outline-none disabled:opacity-50"
               />
               
@@ -152,7 +158,7 @@ const AIInput: React.FC<AIInputProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsRecording(true)}
-                  disabled={disabled}
+                  disabled={disabled || isProcessing}
                   className="p-2 rounded-lg hover:bg-bolt-gray-800/50 transition-colors text-bolt-gray-400 hover:text-white disabled:opacity-50"
                   title="Voice message"
                 >
@@ -162,7 +168,7 @@ const AIInput: React.FC<AIInputProps> = ({
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={disabled}
+                  disabled={disabled || isProcessing}
                   className="p-2 rounded-lg hover:bg-bolt-gray-800/50 transition-colors text-bolt-gray-400 hover:text-white disabled:opacity-50"
                   title="Attach files"
                 >
@@ -171,10 +177,10 @@ const AIInput: React.FC<AIInputProps> = ({
 
                 <button
                   type="submit"
-                  disabled={disabled || isUploading || (!inputValue.trim() && files.length === 0)}
+                  disabled={disabled || isUploading || isProcessing || (!inputValue.trim() && files.length === 0)}
                   className="p-2 rounded-lg hover:bg-bolt-gray-800/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isUploading ? (
+                  {isUploading || isProcessing ? (
                     <Loader2 className="w-5 h-5 text-bolt-blue animate-spin" />
                   ) : (
                     <SendHorizontal className="w-5 h-5 text-bolt-blue" />
@@ -183,7 +189,7 @@ const AIInput: React.FC<AIInputProps> = ({
               </div>
             </div>
 
-            {isUploading && (
+            {(isUploading || isProcessing) && (
               <div className="h-1 bg-bolt-gray-800">
                 <div className="h-full bg-gradient-to-r from-bolt-blue to-bolt-purple animate-progress" />
               </div>

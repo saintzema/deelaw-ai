@@ -6,21 +6,22 @@ import { typewriterTexts } from "../constants/typewriterTexts";
 import chatScreenImage from "../assets/chat-screen.png";
 import chatInterface from "../assets/chatscreen.svg";
 import AIInput from "./AIInput";
-import AuthModal from "./AuthModal";
 import { UserType } from "../types/auth";
 import { chatApi } from "../services/api";
 
 interface HeroSectionProps {
-  userType: UserType;
-  onUserTypeChange: (type: UserType) => void;
+  userType: 'citizen' | 'lawyer';
+  onUserTypeChange: (userType: 'citizen' | 'lawyer') => void;
+  setSavedQuery: (query: string | undefined) => void;
+  setShowAuthModal: (show: boolean) => void;
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ 
   userType, 
-  onUserTypeChange 
+  onUserTypeChange,
+  setSavedQuery,
+  setShowAuthModal 
 }) => {
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [savedQuery, setSavedQuery] = useState<string>();
   const [inputValue, setInputValue] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,17 +39,14 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
     setError(null);
 
     try {
-      // Handle file processing if present
       let processedFiles: { content: string; type: string }[] = [];
       if (files?.length) {
         processedFiles = await Promise.all(
           files.map(async (file) => {
             if (file.type.startsWith('image/')) {
-              // Process image with OCR
               const content = await processImageWithOCR(file);
               return { content, type: 'image' };
             } else {
-              // Process document
               const content = await processDocument(file);
               return { content, type: 'document' };
             }
@@ -56,7 +54,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         );
       }
 
-      // Prepare API request with user type context and processed files
       const response = await fetch('/api/ai/query', {
         method: 'POST',
         headers: {
@@ -73,7 +70,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       if (!response.ok) throw new Error('Failed to process query');
 
       const data = await response.json();
-      // Handle response (implement your logic here)
       console.log('AI Response:', data);
 
     } catch (err) {
@@ -111,7 +107,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
     }
   };
 
-  // Helper functions for file processing
   const processImageWithOCR = async (file: File): Promise<string> => {
     const formData = new FormData();
     formData.append('image', file);
@@ -165,13 +160,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
   return (
     <div className="relative group">
-      <AuthModal 
-        isOpen={showAuthModal} 
-        onClose={() => setShowAuthModal(false)}
-        savedQuery={savedQuery}
-      />
-
-      {/* Main content */}
       <div className="relative bg-bolt-darker rounded-2xl border border-bolt-gray-800 shadow-2xl overflow-hidden p-8 mb-16 backdrop-blur-xl">
         <div className="flex flex-col md:flex-row items-center justify-between">
           <div className="md:w-1/2 mb-8 md:mb-0">
@@ -180,9 +168,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               your personal legal AI assistant
             </h1>
             
-            {/* User Type Selector */}
             <div className="relative w-fit mb-6">
-              <div className="flex items-center bg-bolt-darker/50 p-1 rounded-full border border-bolt-gray-800">
+              <div className="flex items-center bg-bolt-darker/50 p-1 rounded-full">
                 <button
                   onClick={() => onUserTypeChange('citizen')}
                   className={`relative z-10 px-6 py-2 text-sm font-medium transition-colors duration-200 ${
@@ -227,18 +214,19 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               />
             </div>
 
-            {/* AI Input Box */}
             <div className="max-w-xl">
               <AIInput 
-                onSubmit={handleAIQuery}
+                onSubmit={(query) => handleAIQuery(query)}
                 onVoiceMessage={handleVoiceMessage}
                 placeholder={`Ask any legal question as a ${userType}...`}
                 value={inputValue}
                 onChange={setInputValue}
+                showAuthModal={setShowAuthModal}
+                setSavedQuery={setSavedQuery}
+                isProcessing={isProcessing}
               />
             </div>
 
-            {/* Error message */}
             {error && (
               <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-2 text-red-500">
                 <AlertCircle className="w-5 h-5" />
@@ -247,7 +235,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             )}
           </div>
 
-          {/* Right side with chat interface */}
           <div className="md:w-1/2 flex justify-center">
             <div className="relative w-full max-w-md">
               <div className="absolute -inset-[1px] rounded-lg bg-gradient-to-r from-bolt-blue via-bolt-purple to-bolt-blue-dark blur-sm opacity-50" />
@@ -266,7 +253,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           </div>
         </div>
 
-        {/* Features section */}
         <div className="mt-16">
           <div className="relative group">
             <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-bolt-blue via-bolt-purple to-bolt-blue-dark blur-sm opacity-30 group-hover:opacity-50 transition duration-300" />

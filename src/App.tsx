@@ -12,11 +12,14 @@ import UsersSection from './components/UsersSection';
 import HowItWorks from './components/HowItWorks';
 import DashboardRoutes from './components/dashboard/DashboardRoutes';
 import { useAuth } from './contexts/AuthContext';
+import AuthModal from './components/AuthModal';
 
 const App: React.FC = () => {
   const [userType, setUserType] = useState<'citizen' | 'lawyer'>('citizen');
   const [currency, setCurrency] = useState<'USD' | 'NGN'>('USD');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [savedQuery, setSavedQuery] = useState<string | undefined>(undefined);
   const { user } = useAuth();
   const location = useLocation();
 
@@ -37,6 +40,11 @@ const App: React.FC = () => {
 
     checkLocation();
   }, []);
+
+  const handleAuthModalClose = () => {
+    setShowAuthModal(false);
+    setSavedQuery(undefined);
+  };
 
   if (isDashboard) {
     return <DashboardRoutes />;
@@ -107,7 +115,7 @@ const App: React.FC = () => {
             </button>
           ) : (
             <button 
-              onClick={() => window.location.href = '/login'}
+              onClick={() => setShowAuthModal(true)}
               className="bg-gradient-to-r from-bolt-blue to-bolt-purple text-white px-6 py-2 rounded-full font-semibold hover:opacity-90 transition-all duration-300 shadow-lg hover:shadow-bolt-blue/20 hover:scale-105 flex items-center gap-2"
             >
               Try for Free
@@ -122,7 +130,12 @@ const App: React.FC = () => {
           <Route path="/" element={
             <>
               <div className="container mx-auto px-4 py-12">
-                <HeroSection userType={userType} onUserTypeChange={setUserType} />
+                <HeroSection 
+                  userType={userType} 
+                  onUserTypeChange={setUserType} 
+                  setShowAuthModal={setShowAuthModal}
+                  setSavedQuery={setSavedQuery}
+                />
               </div>
               <FeatureSection />
               <PricingSection currency={currency} />
@@ -159,6 +172,12 @@ const App: React.FC = () => {
           </div>
         </div>
       </footer>
+
+      <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={handleAuthModalClose}
+        savedQuery={savedQuery}
+      />
     </div>
   );
 };
