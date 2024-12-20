@@ -171,34 +171,34 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
         </div>
       )}
 
-{/* Messages */}
-<div className="flex-1 overflow-y-auto p-6 space-y-6">
-  {messages.map((message) => (
-    <AIMessage
-      key={message.id}
-      content={message.content}
-      isUser={message.isUser}
-      audioUrl={message.audioUrl}
-      onRequestVoice={
-        !message.isUser && selectedVoice
-          ? async () => {
-              try {
-                const response = await chatApi.generateAudioResponse(message.content);
-                if (!response.audioUrl) {
-                  throw new Error('No audio URL received');
-                }
-                return response.audioUrl;
-              } catch (error) {
-                console.error('Failed to generate audio:', error);
-                throw error;
-              }
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        {messages.map((message) => (
+          <AIMessage
+            key={message.id}
+            content={message.content}
+            isUser={message.isUser}
+            audioUrl={message.audioUrl}
+            onRequestVoice={
+              !message.isUser && selectedVoice
+                ? async () => {
+                    try {
+                      const response = await chatApi.generateAudioResponse(message.content);
+                      if (!response.audioUrl) {
+                        throw new Error('No audio URL received');
+                      }
+                      return response.audioUrl;
+                    } catch (error) {
+                      console.error('Failed to generate audio:', error);
+                      throw error;
+                    }
+                  }
+                : undefined
             }
-          : undefined
-      }
-    />
-  ))}
-  <div ref={chatEndRef} />
-</div>
+          />
+        ))}
+        <div ref={chatEndRef} />
+      </div>
 
       {/* Input Area */}
       <div className="p-4 border-t border-bolt-gray-800">
@@ -209,6 +209,8 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
             isProcessing ? "Processing..." : "Ask me anything about law..."
           }
           disabled={isProcessing}
+          showAuthModal={() => {/* implement showAuthModal function */}}
+          setSavedQuery={(query: string) => {/* implement setSavedQuery function */}}
         />
       </div>
     </div>

@@ -1,22 +1,25 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
     public function register(Request $request)
     {
+
+        \Illuminate\Support\Facades\Log::info('Register method called');
         $request->validate([
             'email' => 'required|email|unique:users',
             'password' => 'required|min:8',
             'firstName' => 'required|string',
             'lastName' => 'required|string',
         ]);
+        \Illuminate\Support\Facades\Log::info('Validation passed');
 
         $user = User::create([
             'email' => $request->email,
@@ -30,6 +33,8 @@ class AuthController extends Controller
                 'characters' => 1000
             ]
         ]);
+
+        \Illuminate\Support\Facades\Log::info('User created', ['user' => $user]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
 

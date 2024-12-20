@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { SignupData, User, Tokens } from '../types/auth';
 import { authApi } from '../services/api';
 
@@ -7,7 +7,7 @@ interface AuthContextType {
   tokens: Tokens;
   isEmailVerified: boolean;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   signup: (data: SignupData) => Promise<void>;
   resendVerificationEmail: () => Promise<void>;
   updateTokens: (newTokens: Partial<Tokens>) => void;
@@ -15,19 +15,42 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Initialize with stored user data
-const getStoredUser = () => {
+// Helper functions for localStorage
+const getStoredUser = (): User | null => {
   const storedUser = localStorage.getItem('user');
-  return storedUser ? JSON.parse(storedUser) : null;
+  if (storedUser) {
+    try {
+      return JSON.parse(storedUser);
+    } catch (error) {
+      console.error('Failed to parse user from localStorage:', error);
+      return null;
+    }
+  }
+  return null;
 };
 
-const getStoredTokens = () => {
+const getStoredTokens = (): Tokens => {
   const storedTokens = localStorage.getItem('tokens');
-  return storedTokens ? JSON.parse(storedTokens) : {
-    words: 4657,
+  if (storedTokens) {
+    try {
+      const parsedTokens = JSON.parse(storedTokens);
+      if (parsedTokens && typeof parsedTokens === 'object') {
+        return {
+          words: parsedTokens.words || 0,
+          images: parsedTokens.images || 0,
+          minutes: parsedTokens.minutes || 0,
+          characters: parsedTokens.characters || 0
+        };
+      }
+    } catch (error) {
+      console.error('Failed to parse tokens from localStorage:', error);
+    }
+  }
+  return {
+    words: 0,
     images: 0,
-    minutes: 5,
-    characters: 812
+    minutes: 0,
+    characters: 0
   };
 };
 
@@ -36,29 +59,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [tokens, setTokens] = useState<Tokens>(getStoredTokens());
   const [isEmailVerified, setIsEmailVerified] = useState(false);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const token = localStorage.getItem('auth_token');
-      const storedUser = localStorage.getItem('user');
-      if (token && storedUser) {
-        try {
-          const userData = await authApi.validateToken();
-          setUser(userData);
-          setTokens(userData.tokens);
-          setIsEmailVerified(userData.isEmailVerified);
-          localStorage.setItem('user', JSON.stringify(userData));
-          localStorage.setItem('tokens', JSON.stringify(userData.tokens));
-        } catch (error) {
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('user');
-          localStorage.removeItem('tokens');
-          setUser(null);
-        }
+  // Use useCallback for memoization of async functions
+  const checkAuth = useCallback(async () => {
+    const token = localStorage.getItem('auth_token');
+    const storedUser = localStorage.getItem('user');
+    if (token && storedUser) {
+      try {
+        const userData = await authApi.validateToken();
+        setUser(userData);
+        setTokens(userData.tokens);
+        setIsEmailVerified(userData.isEmailVerified);
+        localStorage.setItem('user', JSON.stringify(userData));
+        localStorage.setItem('tokens', JSON.stringify(userData.tokens));
+      } catch (error) {
+        console.error('Authentication check failed:', error);
+        logout(); // Call logout to clear state and localStorage
       }
-    };
-
-    checkAuth();
+    }
   }, []);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   const login = async (email: string, password: string) => {
     try {

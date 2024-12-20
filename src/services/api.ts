@@ -29,6 +29,7 @@ interface TokenBalanceResponse {
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -69,6 +70,7 @@ export const authApi = {
     const response = await api.post<AuthResponse>('/auth/register', data);
     return response.data;
   },
+
 
   verifyEmail: async (token: string): Promise<{ message: string }> => {
     const response = await api.post('/auth/verify-email', { token });
