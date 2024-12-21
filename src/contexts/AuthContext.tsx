@@ -33,17 +33,15 @@ const getStoredTokens = (): Tokens => {
   const storedTokens = localStorage.getItem('tokens');
   if (storedTokens) {
     try {
-      const parsedTokens = JSON.parse(storedTokens);
-      if (parsedTokens && typeof parsedTokens === 'object') {
-        return {
-          words: parsedTokens.words || 0,
-          images: parsedTokens.images || 0,
-          minutes: parsedTokens.minutes || 0,
-          characters: parsedTokens.characters || 0
-        };
-      }
+      return JSON.parse(storedTokens);
     } catch (error) {
       console.error('Failed to parse tokens from localStorage:', error);
+      return {
+        words: 0,
+        images: 0,
+        minutes: 0,
+        characters: 0
+      };
     }
   }
   return {
@@ -93,8 +91,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsEmailVerified(userData.isEmailVerified);
     } catch (error) {
       console.error('Login failed:', error);
+      throw new Error('Login failed. Please check your credentials.');
       throw error;
     }
+    
   };
 
   const signup = async (data: SignupData) => {

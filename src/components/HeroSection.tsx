@@ -54,23 +54,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         );
       }
 
-      const response = await fetch('/api/ai/query', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-        },
-        body: JSON.stringify({
-          query,
-          userType,
-          files: processedFiles,
-        })
-      });
-
-      if (!response.ok) throw new Error('Failed to process query');
-
-      const data = await response.json();
-      console.log('AI Response:', data);
+      // Use the chatApi from api.ts instead of direct fetch
+      const response = await chatApi.sendMessage(query, files ? files[0] : undefined);
+      
+      // Here you would handle the response, perhaps redirecting to the dashboard with the query
+      console.log('AI Response:', response);
+      // Redirect to dashboard with the query in state
+      window.location.href = `/dashboard/chat?query=${encodeURIComponent(query)}`;
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -91,7 +81,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
       const response = await chatApi.sendMessage(transcription, audioBlob);
       console.log('Voice message response:', response);
-      
+      // Redirect to dashboard with transcription in state for voice message
+      window.location.href = `/dashboard/chat?query=${encodeURIComponent(transcription)}`;
+
     } catch (error) {
       console.error('Voice message error:', error);
       setError('Failed to process voice message');
@@ -108,6 +100,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   };
 
   const processImageWithOCR = async (file: File): Promise<string> => {
+    // Assuming you have an endpoint for OCR, adjust accordingly
     const formData = new FormData();
     formData.append('image', file);
 
@@ -122,6 +115,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   };
 
   const processDocument = async (file: File): Promise<string> => {
+    // Assuming you have an endpoint for document processing, adjust accordingly
     const formData = new FormData();
     formData.append('document', file);
 

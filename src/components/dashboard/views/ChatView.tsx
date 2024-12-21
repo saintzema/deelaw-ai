@@ -1,35 +1,44 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import ChatContainer from '../../ChatContainer';
 import VoiceSettings from '../VoiceSettings';
 
-interface LocationState {
+interface ChatViewProps {
   initialQuery?: string;
 }
 
-const ChatView: React.FC = () => {
+const ChatView: React.FC<ChatViewProps> = ({ initialQuery: propInitialQuery }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [selectedVoice, setSelectedVoice] = useState<{
     id: string;
     name: string;
     gender: 'male' | 'female';
     preview?: string;
-  }>();
+  } | undefined>(undefined);
 
-  const [initialQuery, setInitialQuery] = useState<string | undefined>(
-    (location.state as LocationState)?.initialQuery
-  );
+  // Use propInitialQuery if present, otherwise check for query param or location state
+  const [initialQuery, setInitialQuery] = useState<string | undefined>(() => {
+    if (propInitialQuery) return propInitialQuery;
+    
+    const searchParams = new URLSearchParams(location.search);
+    const queryFromParam = searchParams.get('query');
+    
+    if (queryFromParam) {
+      return decodeURIComponent(queryFromParam);
+    }
 
-  // Clear the location state after using it
+    return (location.state as { initialQuery?: string })?.initialQuery;
+  });
+
+  // Clear the initialQuery from both URL and state after using it
   useEffect(() => {
     if (initialQuery) {
-      const state = window.history.state;
-      window.history.replaceState(
-        { ...state, initialQuery: undefined },
-        ''
-      );
+      navigate(location.pathname, { replace: true }); // Remove query param from URL
+      window.history.replaceState({ ...window.history.state, initialQuery: undefined }, '');
+      setInitialQuery(undefined); // Clear local state
     }
-  }, [initialQuery]);
+  }, [initialQuery, location, navigate]);
 
   return (
     <div className="h-[calc(100vh-4rem)] flex">

@@ -20,6 +20,7 @@ const VoiceSettings: React.FC<VoiceSettingsProps> = ({
 }) => {
   const [isPlaying, setIsPlaying] = useState<string | null>(null);
 
+  // Define voices outside of render for performance
   const voices: Voice[] = [
     {
       id: 'sarah',
@@ -54,13 +55,18 @@ const VoiceSettings: React.FC<VoiceSettingsProps> = ({
   const playPreview = (voiceId: string, previewUrl?: string) => {
     if (!previewUrl) return;
 
+    // Stop any currently playing audio
+    if (isPlaying !== null) {
+      const currentAudio = document.getElementById(isPlaying) as HTMLAudioElement;
+      if (currentAudio) currentAudio.pause();
+    }
+
     if (isPlaying === voiceId) {
-      // Stop playing
       setIsPlaying(null);
     } else {
-      // Start playing
       setIsPlaying(voiceId);
       const audio = new Audio(previewUrl);
+      audio.id = voiceId;  // Assign ID for later control
       audio.play();
       audio.onended = () => setIsPlaying(null);
     }

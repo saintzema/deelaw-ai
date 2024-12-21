@@ -52,21 +52,17 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
     if (!user) return;
 
     setIsProcessing(true);
+    const userMessage: Message = {
+      id: crypto.randomUUID(),
+      content: query,
+      isUser: true,
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, userMessage]);
 
     try {
-      // Add user message
-      const userMessage: Message = {
-        id: crypto.randomUUID(),
-        content: query,
-        isUser: true,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, userMessage]);
+      const response = await chatApi.sendMessage(query, files?.[0]);
 
-      // Get AI response
-      const response = await chatApi.sendMessage(query);
-
-      // Add AI message
       const aiMessage: Message = {
         id: crypto.randomUUID(),
         content: response.message,
@@ -76,7 +72,6 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
       };
       setMessages((prev) => [...prev, aiMessage]);
 
-      // Update tokens if the API returned tokens used
       if (response.tokensUsed) {
         updateTokens({
           words: tokens.words - response.tokensUsed,
@@ -84,38 +79,34 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
       }
     } catch (error) {
       console.error("Chat error:", error);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          content:
-            "I apologize, but I encountered an error processing your request. Please try again.",
-          isUser: false,
-          timestamp: new Date(),
-        },
-      ]);
+      const errorMessage: Message = {
+        id: crypto.randomUUID(),
+        content:
+          "I apologize, but I encountered an error processing your request. Please try again.",
+        isUser: false,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsProcessing(false);
     }
   };
 
   const handleVoiceMessage = async (audioBlob: Blob, transcription: string) => {
+    if (!user) return;
+
+    setIsProcessing(true);
+    const userMessage: Message = {
+      id: crypto.randomUUID(),
+      content: transcription,
+      isUser: true,
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, userMessage]);
+
     try {
-      setIsProcessing(true);
-
-      // Add user message with transcription
-      const userMessage: Message = {
-        id: crypto.randomUUID(),
-        content: transcription,
-        isUser: true,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, userMessage]);
-
-      // Send message with audio
       const response = await chatApi.sendMessage(transcription, audioBlob);
 
-      // Add AI message
       const aiMessage: Message = {
         id: crypto.randomUUID(),
         content: response.message,
@@ -132,15 +123,13 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
       }
     } catch (error) {
       console.error("Voice message error:", error);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          content: "Failed to process voice message. Please try again.",
-          isUser: false,
-          timestamp: new Date(),
-        },
-      ]);
+      const errorMessage: Message = {
+        id: crypto.randomUUID(),
+        content: "Failed to process voice message. Please try again.",
+        isUser: false,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsProcessing(false);
     }
@@ -209,8 +198,9 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
             isProcessing ? "Processing..." : "Ask me anything about law..."
           }
           disabled={isProcessing}
-          showAuthModal={() => {/* implement showAuthModal function */}}
-          setSavedQuery={(query: string) => {/* implement setSavedQuery function */}}
+          isProcessing={isProcessing}
+          showAuthModal={() => {/* Implement showAuthModal here if needed */}}
+          setSavedQuery={(query: string) => {/* Implement setSavedQuery here if needed */}}
         />
       </div>
     </div>
